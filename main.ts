@@ -3,7 +3,7 @@ import { Editor, Notice, Plugin } from 'obsidian';
 export default class ObsidianLineCommands extends Plugin {
 	async onload() {
 		this.addCommand({
-			id: 'obsidian-toolkit-select-lines',
+			id: 'select-lines',
 			name: 'Select lines',
 			icon: 'text-cursor-input',
 			editorCallback: async (editor: Editor) => {
@@ -17,7 +17,7 @@ export default class ObsidianLineCommands extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'obsidian-toolkit-copy-lines',
+			id: 'copy-lines',
 			name: 'Copy lines',
 			icon: 'copy-minus',
 			editorCallback: async (editor: Editor) => {
@@ -32,7 +32,7 @@ export default class ObsidianLineCommands extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'obsidian-toolkit-cut-lines',
+			id: 'cut-lines',
 			name: 'Cut lines',
 			icon: 'scissors-line-dashed',
 			editorCallback: async (editor: Editor) => {
@@ -49,7 +49,7 @@ export default class ObsidianLineCommands extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'obsidian-toolkit-paste-before-line',
+			id: 'paste-before-line',
 			name: 'Paste before line',
 			icon: 'clipboard-copy',
 			editorCallback: async (editor: Editor) => {
@@ -61,7 +61,7 @@ export default class ObsidianLineCommands extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'obsidian-toolkit-paste-after-line',
+			id: 'paste-after-line',
 			name: 'Paste after line',
 			icon: 'clipboard-paste',
 			editorCallback: async (editor: Editor) => {
