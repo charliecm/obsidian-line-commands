@@ -9,10 +9,10 @@ export default class ObsidianLineCommands extends Plugin {
 			editorCallback: async (editor: Editor) => {
 				const startLine = editor.getCursor('from').line;
 				const endLine = editor.getCursor('to').line;
-				const endLineCh = editor.getLine(endLine).length
+				const endLineCh = editor.getLine(endLine).length;
 				const rangeStart = { line: startLine, ch: 0 };
 				const rangeEnd = { line: endLine, ch: endLineCh };
-				editor.setSelection(rangeStart, rangeEnd)
+				editor.setSelection(rangeStart, rangeEnd);
 			}
 		});
 
@@ -23,7 +23,7 @@ export default class ObsidianLineCommands extends Plugin {
 			editorCallback: async (editor: Editor) => {
 				const startLine = editor.getCursor('from').line;
 				const endLine = editor.getCursor('to').line;
-				const endLineCh = editor.getLine(endLine).length
+				const endLineCh = editor.getLine(endLine).length;
 				const rangeStart = { line: startLine, ch: 0 };
 				const rangeEnd = { line: endLine, ch: endLineCh };
 				const text = editor.getRange(rangeStart, rangeEnd);
@@ -38,11 +38,11 @@ export default class ObsidianLineCommands extends Plugin {
 			editorCallback: async (editor: Editor) => {
 				const startLine = editor.getCursor('from').line;
 				const endLine = editor.getCursor('to').line;
-				const endLineCh = editor.getLine(endLine).length
+				const endLineCh = editor.getLine(endLine).length;
 				const rangeStart = { line: startLine, ch: 0 };
 				const rangeEnd = { line: endLine, ch: endLineCh };
 				const text = editor.getRange(rangeStart, rangeEnd);
-				const rangeEndNextLine = { line: endLine + 1, ch: 0 }
+				const rangeEndNextLine = { line: endLine + 1, ch: 0 };
 				editor.replaceRange('', rangeStart, rangeEndNextLine);
 				this.copyToClipboard(text);
 			}
