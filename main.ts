@@ -1,6 +1,6 @@
 import { Editor, Notice, Plugin } from 'obsidian';
 
-export default class MyPlugin extends Plugin {
+export default class ObsidianLineCommands extends Plugin {
 	async onload() {
 		this.addCommand({
 			id: 'obsidian-toolkit-select-lines',
