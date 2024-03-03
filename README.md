@@ -36,9 +36,15 @@ For manual installation, download this repo and copy over `main.js` and `manifes
 ## Release
 
 1. Run `yarn build`.
-2. Run `npm version [patch/minor/major]` to bump version in `manifest.json` and `versions.json`
+2. Run `npm version [patch/minor/major]` to bump version in `manifest.json` and `versions.json`.
 3. Add changes in `CHANGELOG.md`.
-4. Add a new release in Github with the changelog texts and the built `main.js` and `manifest.json` attached.
+4. Add a new version tag and push it.
+    ```
+    git tag -a 1.0.1 -m "1.0.1"
+    git push origin 1.0.1
+    ```
+5. Go to “Releases” in GitHub and edit the latest release (created by GitHub Actions). Insert the changelog texts in the description and ensure `main.js` and `manifest.json` are attached. 
+6. Click “Publish release”.
 
 ## Support
 
