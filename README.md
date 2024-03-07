@@ -1,4 +1,4 @@
-# Obsidian Line Tools
+# Obsidian Line Commands
 
 An [Obsidian](https://obsidian.md) plugin that adds the following commands:
 
