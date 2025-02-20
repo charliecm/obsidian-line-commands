@@ -83,22 +83,11 @@ export default class ObsidianLineCommands extends Plugin {
 				const rangeStart = { line: startLine, ch: 0 };
 				const rangeEnd = { line: endLine, ch: endLineCh };
 				const text = editor.getRange(rangeStart, rangeEnd);
-				editor.setLine(endLine, text + "\n" + text);
-			}
-		});
-
-		this.addCommand({
-			id: 'copy-lines-up',
-			name: 'Copy lines up',
-			icon: 'clipboard-paste',
-			editorCallback: async (editor: Editor) => {
-				const startLine = editor.getCursor('from').line;
-				const endLine = editor.getCursor('to').line;
-				const endLineCh = editor.getLine(endLine).length;
-				const rangeStart = { line: startLine, ch: 0 };
-				const rangeEnd = { line: endLine, ch: endLineCh };
-				const text = editor.getRange(rangeStart, rangeEnd);
-				editor.setLine(startLine, text + "\n" + text);
+				editor.replaceRange(text + "\n" + text, rangeStart, rangeEnd);
+				// set the cursor to select the copied text
+				const selectionStart = {line: endLine + 1, ch: 0}
+				const selectionEnd = {line: endLine + (endLine - startLine) + 1, ch: endLineCh}
+				editor.setSelection(selectionStart, selectionEnd);
 			}
 		});
 	}

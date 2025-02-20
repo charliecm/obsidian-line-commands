@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.0.1 (2025-02-20)
+## 1.1.0 (2025-02-20)
 
-- Add copy line up and copy line down
+- Add copy line down
 
 ## 0.1.0 (2024-02-28)
 
