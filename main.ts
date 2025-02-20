@@ -71,6 +71,36 @@ export default class ObsidianLineCommands extends Plugin {
 				editor.setLine(currentLine, currentText + "\n" + clipboardText);
 			}
 		});
+
+		this.addCommand({
+			id: 'copy-lines-down',
+			name: 'Copy lines down',
+			icon: 'clipboard-paste',
+			editorCallback: async (editor: Editor) => {
+				const startLine = editor.getCursor('from').line;
+				const endLine = editor.getCursor('to').line;
+				const endLineCh = editor.getLine(endLine).length;
+				const rangeStart = { line: startLine, ch: 0 };
+				const rangeEnd = { line: endLine, ch: endLineCh };
+				const text = editor.getRange(rangeStart, rangeEnd);
+				editor.setLine(endLine, text + "\n" + text);
+			}
+		});
+
+		this.addCommand({
+			id: 'copy-lines-up',
+			name: 'Copy lines up',
+			icon: 'clipboard-paste',
+			editorCallback: async (editor: Editor) => {
+				const startLine = editor.getCursor('from').line;
+				const endLine = editor.getCursor('to').line;
+				const endLineCh = editor.getLine(endLine).length;
+				const rangeStart = { line: startLine, ch: 0 };
+				const rangeEnd = { line: endLine, ch: endLineCh };
+				const text = editor.getRange(rangeStart, rangeEnd);
+				editor.setLine(startLine, text + "\n" + text);
+			}
+		});
 	}
 
 	async copyToClipboard(text: string) {
