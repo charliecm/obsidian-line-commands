@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.1.0 (2025-02-20)
+## 1.1.0 (2025-02-25)
 
-- Add copy line down
+- Added “Duplicate lines” command (thanks @adventkranz)
 
 ## 0.1.0 (2024-02-28)
 
