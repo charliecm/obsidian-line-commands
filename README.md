@@ -7,6 +7,7 @@ An [Obsidian](https://obsidian.md) plugin that adds the following commands:
 - **Cut lines:** Cuts the lines under the selection or cursor.
 - **Paste before line:** Pastes the clipboard text in the line before the selection or cursor.
 - **Paste after line:** Pastes the clipboard text in the line after the selection or cursor.
+- **Copy lines down:** Copies selected text under selection.
 
 <img width="565" alt="Icons for each of the commands listed above" src="https://raw.githubusercontent.com/charliecm/obsidian-line-commands/main/commands.png">
 
@@ -43,7 +44,7 @@ For manual installation, download this repo and copy over `main.js` and `manifes
     git tag -a 1.0.1 -m "1.0.1"
     git push origin 1.0.1
     ```
-5. Go to “Releases” in GitHub and edit the latest release (created by GitHub Actions). Insert the changelog texts in the description and ensure `main.js` and `manifest.json` are attached. 
+5. Go to “Releases” in GitHub and edit the latest release (created by GitHub Actions). Insert the changelog texts in the description and ensure `main.js` and `manifest.json` are attached.
 6. Click “Publish release”.
 
 ## Support

@@ -71,6 +71,25 @@ export default class ObsidianLineCommands extends Plugin {
 				editor.setLine(currentLine, currentText + "\n" + clipboardText);
 			}
 		});
+
+		this.addCommand({
+			id: 'copy-lines-down',
+			name: 'Copy lines down',
+			icon: 'clipboard-paste',
+			editorCallback: async (editor: Editor) => {
+				const startLine = editor.getCursor('from').line;
+				const endLine = editor.getCursor('to').line;
+				const endLineCh = editor.getLine(endLine).length;
+				const rangeStart = { line: startLine, ch: 0 };
+				const rangeEnd = { line: endLine, ch: endLineCh };
+				const text = editor.getRange(rangeStart, rangeEnd);
+				editor.replaceRange(text + "\n" + text, rangeStart, rangeEnd);
+				// set the cursor to select the copied text
+				const selectionStart = {line: endLine + 1, ch: 0}
+				const selectionEnd = {line: endLine + (endLine - startLine) + 1, ch: endLineCh}
+				editor.setSelection(selectionStart, selectionEnd);
+			}
+		});
 	}
 
 	async copyToClipboard(text: string) {
