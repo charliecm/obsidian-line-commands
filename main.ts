@@ -73,9 +73,9 @@ export default class ObsidianLineCommands extends Plugin {
 		});
 
 		this.addCommand({
-			id: 'copy-lines-down',
-			name: 'Copy lines down',
-			icon: 'clipboard-paste',
+			id: 'duplicate-lines',
+			name: 'Duplicate lines',
+			icon: 'copy',
 			editorCallback: async (editor: Editor) => {
 				const startLine = editor.getCursor('from').line;
 				const endLine = editor.getCursor('to').line;
