@@ -7,8 +7,20 @@ export default class ObsidianLineCommands extends Plugin {
 			name: 'Select lines',
 			icon: 'text-cursor-input',
 			editorCallback: async (editor: Editor) => {
-				const startLine = editor.getCursor('from').line;
-				const endLine = editor.getCursor('to').line;
+				const from = editor.getCursor('from');
+				const to = editor.getCursor('to');
+				const startLine = from.line;
+				let endLine = to.line;
+				const lastLine = editor.lastLine();
+
+				// If the current line(s) are already fully selected, extend the
+				// selection to include the next line down on each invocation.
+				const fullySelected =
+					from.ch === 0 && to.ch === editor.getLine(endLine).length;
+				if (fullySelected && endLine < lastLine) {
+					endLine += 1;
+				}
+
 				const endLineCh = editor.getLine(endLine).length;
 				const rangeStart = { line: startLine, ch: 0 };
 				const rangeEnd = { line: endLine, ch: endLineCh };
