@@ -1,12 +1,14 @@
 import { Editor, EditorPosition, Notice, Plugin } from 'obsidian';
 
 function getLineRange(editor: Editor) {
-	const startLine = editor.getCursor('from').line;
-	const endLine = editor.getCursor('to').line;
+	const from = editor.getCursor('from');
+	const to = editor.getCursor('to');
+	const startLine = from.line;
+	const endLine = to.line;
 	const endLineCh = editor.getLine(endLine).length;
 	const rangeStart = { line: startLine, ch: 0 };
 	const rangeEnd = { line: endLine, ch: endLineCh };
-	return { startLine, endLine, rangeStart, rangeEnd };
+	return { from, to, startLine, endLine, rangeStart, rangeEnd };
 }
 
 function getLineRemovalRange(
@@ -33,8 +35,20 @@ export default class ObsidianLineCommands extends Plugin {
 			name: 'Select lines',
 			icon: 'text-cursor-input',
 			editorCallback: async (editor: Editor) => {
-				const { rangeStart, rangeEnd } = getLineRange(editor);
-				editor.setSelection(rangeStart, rangeEnd);
+				const { from, to, endLine, rangeStart, rangeEnd } = getLineRange(editor);
+				const lastLine = editor.lastLine();
+
+				// If the current line(s) are already fully selected, extend the
+				// selection to include the next line down on each invocation.
+				// A collapsed cursor on an empty line trivially matches the
+				// full-line bounds, so require an actual selection as well.
+				const hasSelection = from.line !== to.line || from.ch !== to.ch;
+				const fullySelected = hasSelection && from.ch === 0 && to.ch === rangeEnd.ch;
+				const finalRangeEnd =
+					fullySelected && endLine < lastLine
+						? { line: endLine + 1, ch: editor.getLine(endLine + 1).length }
+						: rangeEnd;
+				editor.setSelection(rangeStart, finalRangeEnd);
 			},
 		});
 

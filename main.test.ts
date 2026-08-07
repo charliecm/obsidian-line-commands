@@ -134,6 +134,46 @@ describe('ObsidianLineCommands', () => {
 		expect(editor.getSelection()).toEqual({ from: { line: 0, ch: 0 }, to: { line: 2, ch: 5 } });
 	});
 
+	it('extends the selection to the next line when the current line is already fully selected', async () => {
+		const editor = new TestEditor('first\nsecond\nthird', { line: 0, ch: 0 }, { line: 0, ch: 5 });
+
+		await getCommand('select-lines').editorCallback(editor);
+
+		expect(editor.getSelection()).toEqual({ from: { line: 0, ch: 0 }, to: { line: 1, ch: 6 } });
+	});
+
+	it('extends an already fully selected multi-line range by one more line on repeated invocation', async () => {
+		const editor = new TestEditor('first\nsecond\nthird\nfourth', { line: 0, ch: 0 }, { line: 1, ch: 6 });
+
+		await getCommand('select-lines').editorCallback(editor);
+
+		expect(editor.getSelection()).toEqual({ from: { line: 0, ch: 0 }, to: { line: 2, ch: 5 } });
+	});
+
+	it('stops extending once the fully selected range already reaches the last line', async () => {
+		const editor = new TestEditor('first\nsecond', { line: 0, ch: 0 }, { line: 1, ch: 6 });
+
+		await getCommand('select-lines').editorCallback(editor);
+
+		expect(editor.getSelection()).toEqual({ from: { line: 0, ch: 0 }, to: { line: 1, ch: 6 } });
+	});
+
+	it('extends a fully selected range that ends on an empty line', async () => {
+		const editor = new TestEditor('first\n\nthird', { line: 0, ch: 0 }, { line: 1, ch: 0 });
+
+		await getCommand('select-lines').editorCallback(editor);
+
+		expect(editor.getSelection()).toEqual({ from: { line: 0, ch: 0 }, to: { line: 2, ch: 5 } });
+	});
+
+	it('does not extend a collapsed cursor on an empty line, since nothing is actually selected yet', async () => {
+		const editor = new TestEditor('first\n\nthird', { line: 1, ch: 0 }, { line: 1, ch: 0 });
+
+		await getCommand('select-lines').editorCallback(editor);
+
+		expect(editor.getSelection()).toEqual({ from: { line: 1, ch: 0 }, to: { line: 1, ch: 0 } });
+	});
+
 	it('copies complete selected lines without changing the editor', async () => {
 		const { writeText } = setClipboard(undefined, vi.fn().mockResolvedValue(undefined));
 		const editor = new TestEditor('first\nsecond\nthird', { line: 0, ch: 2 }, { line: 1, ch: 4 });
