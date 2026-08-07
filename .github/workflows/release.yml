@@ -5,30 +5,48 @@ on:
         tags:
             - "*"
 
+permissions:
+    contents: write
+    id-token: write
+    attestations: write
+
 jobs:
     build:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v6
 
             - name: Use Node.js
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v6
               with:
-                  node-version: "18.x"
+                  node-version: "24"
 
             - name: Build plugin
               run: |
-                  npm install
+                  npm ci
                   npm run build
+
+            - name: Check for styles.css
+              id: styles
+              run: echo "exists=$([ -f styles.css ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+            - name: Attest build provenance
+              uses: actions/attest@v4
+              with:
+                  subject-path: ${{ steps.styles.outputs.exists == 'true' && 'main.js, styles.css' || 'main.js' }}
 
             - name: Create release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   tag="${GITHUB_REF#refs/tags/}"
+                  assets="main.js manifest.json"
+                  if [[ "${{ steps.styles.outputs.exists }}" == "true" ]]; then
+                    assets="$assets styles.css"
+                  fi
 
                   gh release create "$tag" \
                     --title="$tag" \
                     --draft \
-                    main.js manifest.json
+                    $assets

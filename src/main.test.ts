@@ -26,7 +26,7 @@ vi.mock('obsidian', () => ({
 	},
 }));
 
-import ObsidianLineCommands from './main.ts';
+import ObsidianLineCommands from './main';
 
 class TestEditor {
 	private lines: string[];
@@ -79,7 +79,7 @@ class TestEditor {
 
 	private offset(point: Point) {
 		const line = Math.min(point.line, this.lines.length - 1);
-		const ch = Math.min(point.ch, this.lines[line].length);
+		const ch = Math.min(point.ch, this.lines[line]!.length);
 		return this.lines.slice(0, line).reduce((offset, current) => offset + current.length + 1, 0) + ch;
 	}
 }

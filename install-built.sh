@@ -22,7 +22,7 @@ install_to() {
 }
 
 if [[ -d "$VAULT/.obsidian" ]]; then
-  yarn build
+  npm run build
 fi
 
 install_to "$VAULT/.obsidian/plugins/$PLUGIN_ID" "$VAULT/.obsidian" "$2"
