@@ -1,4 +1,30 @@
-import { Editor, Notice, Plugin } from 'obsidian';
+import { Editor, EditorPosition, Notice, Plugin } from 'obsidian';
+
+function getLineRange(editor: Editor) {
+	const startLine = editor.getCursor('from').line;
+	const endLine = editor.getCursor('to').line;
+	const endLineCh = editor.getLine(endLine).length;
+	const rangeStart = { line: startLine, ch: 0 };
+	const rangeEnd = { line: endLine, ch: endLineCh };
+	return { startLine, endLine, rangeStart, rangeEnd };
+}
+
+function getLineRemovalRange(
+	editor: Editor,
+	startLine: number,
+	endLine: number,
+	rangeStart: EditorPosition,
+	rangeEnd: EditorPosition,
+) {
+	if (endLine < editor.lastLine()) {
+		return { removalStart: rangeStart, removalEnd: { line: endLine + 1, ch: 0 } };
+	}
+	if (startLine === 0) {
+		return { removalStart: rangeStart, removalEnd: rangeEnd };
+	}
+	const previousLineEnd = { line: startLine - 1, ch: editor.getLine(startLine - 1).length };
+	return { removalStart: previousLineEnd, removalEnd: rangeEnd };
+}
 
 export default class ObsidianLineCommands extends Plugin {
 	async onload() {
@@ -9,21 +35,17 @@ export default class ObsidianLineCommands extends Plugin {
 			editorCallback: async (editor: Editor) => {
 				const from = editor.getCursor('from');
 				const to = editor.getCursor('to');
-				const startLine = from.line;
-				let endLine = to.line;
+				const { endLine, rangeStart, rangeEnd } = getLineRange(editor);
 				const lastLine = editor.lastLine();
 
 				// If the current line(s) are already fully selected, extend the
 				// selection to include the next line down on each invocation.
-				const fullySelected =
-					from.ch === 0 && to.ch === editor.getLine(endLine).length;
+				const fullySelected = from.ch === 0 && to.ch === editor.getLine(endLine).length;
 				if (fullySelected && endLine < lastLine) {
-					endLine += 1;
+					const extendedEndLine = endLine + 1;
+					rangeEnd.line = extendedEndLine;
+					rangeEnd.ch = editor.getLine(extendedEndLine).length;
 				}
-
-				const endLineCh = editor.getLine(endLine).length;
-				const rangeStart = { line: startLine, ch: 0 };
-				const rangeEnd = { line: endLine, ch: endLineCh };
 				editor.setSelection(rangeStart, rangeEnd);
 			},
 		});
@@ -33,13 +55,9 @@ export default class ObsidianLineCommands extends Plugin {
 			name: 'Copy lines',
 			icon: 'copy-minus',
 			editorCallback: async (editor: Editor) => {
-				const startLine = editor.getCursor('from').line;
-				const endLine = editor.getCursor('to').line;
-				const endLineCh = editor.getLine(endLine).length;
-				const rangeStart = { line: startLine, ch: 0 };
-				const rangeEnd = { line: endLine, ch: endLineCh };
+				const { rangeStart, rangeEnd } = getLineRange(editor);
 				const text = editor.getRange(rangeStart, rangeEnd);
-				this.copyToClipboard(text);
+				await this.copyToClipboard(text);
 			},
 		});
 
@@ -48,15 +66,11 @@ export default class ObsidianLineCommands extends Plugin {
 			name: 'Cut lines',
 			icon: 'scissors-line-dashed',
 			editorCallback: async (editor: Editor) => {
-				const startLine = editor.getCursor('from').line;
-				const endLine = editor.getCursor('to').line;
-				const endLineCh = editor.getLine(endLine).length;
-				const rangeStart = { line: startLine, ch: 0 };
-				const rangeEnd = { line: endLine, ch: endLineCh };
+				const { startLine, endLine, rangeStart, rangeEnd } = getLineRange(editor);
 				const text = editor.getRange(rangeStart, rangeEnd);
-				const rangeEndNextLine = { line: endLine + 1, ch: 0 };
-				editor.replaceRange('', rangeStart, rangeEndNextLine);
-				this.copyToClipboard(text);
+				const { removalStart, removalEnd } = getLineRemovalRange(editor, startLine, endLine, rangeStart, rangeEnd);
+				editor.replaceRange('', removalStart, removalEnd);
+				await this.copyToClipboard(text);
 			},
 		});
 
@@ -89,11 +103,7 @@ export default class ObsidianLineCommands extends Plugin {
 			name: 'Duplicate lines',
 			icon: 'copy',
 			editorCallback: async (editor: Editor) => {
-				const startLine = editor.getCursor('from').line;
-				const endLine = editor.getCursor('to').line;
-				const endLineCh = editor.getLine(endLine).length;
-				const rangeStart = { line: startLine, ch: 0 };
-				const rangeEnd = { line: endLine, ch: endLineCh };
+				const { startLine, endLine, rangeStart, rangeEnd } = getLineRange(editor);
 				const text = editor.getRange(rangeStart, rangeEnd);
 				editor.replaceRange(text + '\n' + text, rangeStart, rangeEnd);
 
@@ -101,7 +111,7 @@ export default class ObsidianLineCommands extends Plugin {
 				const selectionStart = { line: endLine + 1, ch: 0 };
 				const selectionEnd = {
 					line: endLine + (endLine - startLine) + 1,
-					ch: endLineCh,
+					ch: rangeEnd.ch,
 				};
 				editor.setSelection(selectionStart, selectionEnd);
 			},
@@ -112,7 +122,7 @@ export default class ObsidianLineCommands extends Plugin {
 		try {
 			await navigator.clipboard.writeText(text);
 		} catch (error) {
-			console.error(error.message);
+			console.error(error instanceof Error ? error.message : error);
 			new Notice('Unable to copy lines to clipboard.');
 		}
 	}
