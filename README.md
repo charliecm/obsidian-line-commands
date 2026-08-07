@@ -30,13 +30,13 @@ For manual installation, download this repo and copy over `main.js` and `manifes
 ## Development
 
 1. Clone this repo.
-2. `yarn` to install dependencies.
-3. `yarn dev` to start compilation in watch mode.
+2. `npm install` to install dependencies.
+3. `npm run dev` to start compilation in watch mode.
 4. `bash install-built.sh /path/to/your/vault -d` to create symbolic links of built files to your vault for quick development.
 
 ## Release
 
-1. Run `yarn build`.
+1. Run `npm run build`.
 2. Run `npm version [patch/minor/major]` to bump version in `manifest.json` and `versions.json`.
 3. Add changes in `CHANGELOG.md`.
 4. Add a new version tag and push it.
