@@ -44,7 +44,7 @@ class TestEditor {
 		return this.lines.join('\n');
 	}
 
-	getCursor(which: 'from' | 'to') {
+	getCursor(which: 'from' | 'to' = 'to') {
 		return which === 'from' ? this.from : this.to;
 	}
 
@@ -60,13 +60,18 @@ class TestEditor {
 		return this.text.slice(this.offset(from), this.offset(to));
 	}
 
-	replaceRange(replacement: string, from: Point, to: Point) {
+	replaceRange(replacement: string, from: Point, to: Point = from) {
 		const text = this.text;
 		this.lines = (text.slice(0, this.offset(from)) + replacement + text.slice(this.offset(to))).split('\n');
 	}
 
 	setLine(line: number, text: string) {
 		this.lines.splice(line, 1, ...text.split('\n'));
+	}
+
+	setCursor(position: Point) {
+		this.from = position;
+		this.to = position;
 	}
 
 	setSelection(from: Point, to: Point) {
@@ -107,13 +112,15 @@ describe('ObsidianLineCommands', () => {
 		await plugin.onload();
 	});
 
-	it('registers the six documented editor commands', () => {
+	it('registers the eight documented editor commands', () => {
 		expect(commands.map(({ id, name, icon }) => ({ id, name, icon }))).toEqual([
 			{ id: 'select-lines', name: 'Select lines', icon: 'text-cursor-input' },
 			{ id: 'copy-lines', name: 'Copy lines', icon: 'copy-minus' },
 			{ id: 'cut-lines', name: 'Cut lines', icon: 'scissors-line-dashed' },
 			{ id: 'paste-before-line', name: 'Paste before line', icon: 'clipboard-copy' },
 			{ id: 'paste-after-line', name: 'Paste after line', icon: 'clipboard-paste' },
+			{ id: 'insert-line-above', name: 'Insert line above', icon: 'between-horizontal-end' },
+			{ id: 'insert-line-below', name: 'Insert line below', icon: 'between-horizontal-start' },
 			{ id: 'duplicate-lines', name: 'Duplicate lines', icon: 'copy' },
 		]);
 	});
@@ -258,6 +265,42 @@ describe('ObsidianLineCommands', () => {
 
 		await expect(getCommand('paste-before-line').editorCallback(editor)).rejects.toThrow(error);
 		expect(editor.text).toBe('first\nsecond');
+	});
+
+	it('inserts a blank line above the cursor line', async () => {
+		const editor = new TestEditor('first\nsecond', { line: 1, ch: 3 });
+
+		await getCommand('insert-line-above').editorCallback(editor);
+
+		expect(editor.text).toBe('first\n\nsecond');
+		expect(editor.getCursor()).toEqual({ line: 1, ch: 0 });
+	});
+
+	it('continues a list marker when inserting a line above', async () => {
+		const editor = new TestEditor('- item', { line: 0, ch: 4 });
+
+		await getCommand('insert-line-above').editorCallback(editor);
+
+		expect(editor.text).toBe('- \n- item');
+		expect(editor.getCursor()).toEqual({ line: 0, ch: 2 });
+	});
+
+	it('inserts a blank line below the cursor line', async () => {
+		const editor = new TestEditor('first\nsecond', { line: 0, ch: 2 });
+
+		await getCommand('insert-line-below').editorCallback(editor);
+
+		expect(editor.text).toBe('first\n\nsecond');
+		expect(editor.getCursor()).toEqual({ line: 1, ch: 0 });
+	});
+
+	it('continues an ordered list marker when inserting a line below', async () => {
+		const editor = new TestEditor('1. item', { line: 0, ch: 4 });
+
+		await getCommand('insert-line-below').editorCallback(editor);
+
+		expect(editor.text).toBe('1. item\n2. ');
+		expect(editor.getCursor()).toEqual({ line: 1, ch: 3 });
 	});
 
 	it('duplicates multi-line selections and selects only the inserted copy', async () => {
