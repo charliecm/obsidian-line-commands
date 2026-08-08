@@ -28,6 +28,13 @@ function getLineRemovalRange(
 	return { removalStart: previousLineEnd, removalEnd: rangeEnd };
 }
 
+function getPasteEndCursor(baseLine: number, clipboardLines: string[]): EditorPosition {
+	return {
+		line: baseLine + clipboardLines.length - 1,
+		ch: clipboardLines[clipboardLines.length - 1]!.length,
+	};
+}
+
 export default class ObsidianLineCommands extends Plugin {
 	async onload() {
 		this.addCommand({
@@ -84,7 +91,14 @@ export default class ObsidianLineCommands extends Plugin {
 				const currentLine = editor.getCursor('from').line;
 				const currentText = editor.getLine(currentLine);
 				const clipboardText = await navigator.clipboard.readText();
+				const clipboardLines = clipboardText.split('\n');
 				editor.setLine(currentLine, clipboardText + '\n' + currentText);
+
+				// Editors don't reliably keep the cursor anchored to the original
+				// line when its containing range is replaced, so place it
+				// explicitly at the end of the pasted text.
+				const pasteEnd = getPasteEndCursor(currentLine, clipboardLines);
+				editor.setSelection(pasteEnd, pasteEnd);
 			},
 		});
 
@@ -96,7 +110,14 @@ export default class ObsidianLineCommands extends Plugin {
 				const currentLine = editor.getCursor('from').line;
 				const currentText = editor.getLine(currentLine);
 				const clipboardText = await navigator.clipboard.readText();
+				const clipboardLines = clipboardText.split('\n');
 				editor.setLine(currentLine, currentText + '\n' + clipboardText);
+
+				// Editors don't reliably keep the cursor anchored to the original
+				// line when its containing range is replaced, so place it
+				// explicitly at the end of the pasted text.
+				const pasteEnd = getPasteEndCursor(currentLine + 1, clipboardLines);
+				editor.setSelection(pasteEnd, pasteEnd);
 			},
 		});
 
