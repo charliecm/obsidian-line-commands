@@ -226,6 +226,7 @@ describe('ObsidianLineCommands', () => {
 
 		expect(readText).toHaveBeenCalledOnce();
 		expect(editor.text).toBe('first\nbefore\ntext\nsecond\nthird');
+		expect(editor.getSelection()).toEqual({ from: { line: 2, ch: 4 }, to: { line: 2, ch: 4 } });
 	});
 
 	it('pastes clipboard text after an empty cursor line', async () => {
@@ -236,6 +237,18 @@ describe('ObsidianLineCommands', () => {
 
 		expect(readText).toHaveBeenCalledOnce();
 		expect(editor.text).toBe('first\n\nafter\nthird');
+		expect(editor.getSelection()).toEqual({ from: { line: 2, ch: 5 }, to: { line: 2, ch: 5 } });
+	});
+
+	it('places the cursor at the end of the pasted text when pasting after a line, even when the cursor started before the end of that line', async () => {
+		const { readText } = setClipboard(vi.fn().mockResolvedValue('pasted'));
+		const editor = new TestEditor('first\nsecond\nthird', { line: 1, ch: 2 });
+
+		await getCommand('paste-after-line').editorCallback(editor);
+
+		expect(readText).toHaveBeenCalledOnce();
+		expect(editor.text).toBe('first\nsecond\npasted\nthird');
+		expect(editor.getSelection()).toEqual({ from: { line: 2, ch: 6 }, to: { line: 2, ch: 6 } });
 	});
 
 	it('does not change the editor when reading the clipboard fails', async () => {
