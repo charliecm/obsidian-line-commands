@@ -35,6 +35,37 @@ function getPasteEndCursor(baseLine: number, clipboardLines: string[]): EditorPo
 	};
 }
 
+function getLineContinuation(line: string): string {
+	if (line.trim() === '') return '';
+
+	const taskMatch = line.match(/^(\s*)([-*+])\s+\[[ xX]\]\s*/);
+	if (taskMatch) return `${taskMatch[1]}${taskMatch[2]} [ ] `;
+
+	const orderedMatch = line.match(/^(\s*)(\d+)\.\s+/);
+	if (orderedMatch) return `${orderedMatch[1]}${parseInt(orderedMatch[2]!, 10) + 1}. `;
+
+	const unorderedMatch = line.match(/^(\s*)([-*+])\s+/);
+	if (unorderedMatch) return `${unorderedMatch[1]}${unorderedMatch[2]} `;
+
+	const indentMatch = line.match(/^(\s+)/);
+	if (indentMatch) return indentMatch[1]!;
+
+	return '';
+}
+
+function insertContinuedLine(editor: Editor, position: 'above' | 'below') {
+	const currentLine = editor.getCursor().line;
+	const line = editor.getLine(currentLine);
+	const continuation = getLineContinuation(line);
+	if (position === 'above') {
+		editor.replaceRange(continuation + '\n', { line: currentLine, ch: 0 });
+		editor.setCursor({ line: currentLine, ch: continuation.length });
+	} else {
+		editor.replaceRange('\n' + continuation, { line: currentLine, ch: line.length });
+		editor.setCursor({ line: currentLine + 1, ch: continuation.length });
+	}
+}
+
 export default class ObsidianLineCommands extends Plugin {
 	async onload() {
 		this.addCommand({
@@ -119,6 +150,20 @@ export default class ObsidianLineCommands extends Plugin {
 				const pasteEnd = getPasteEndCursor(currentLine + 1, clipboardLines);
 				editor.setSelection(pasteEnd, pasteEnd);
 			},
+		});
+
+		this.addCommand({
+			id: 'insert-line-above',
+			name: 'Insert line above',
+			icon: 'between-horizontal-end',
+			editorCallback: async (editor: Editor) => insertContinuedLine(editor, 'above'),
+		});
+
+		this.addCommand({
+			id: 'insert-line-below',
+			name: 'Insert line below',
+			icon: 'between-horizontal-start',
+			editorCallback: async (editor: Editor) => insertContinuedLine(editor, 'below'),
 		});
 
 		this.addCommand({
