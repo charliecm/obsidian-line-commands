@@ -7,6 +7,8 @@ An [Obsidian](https://obsidian.md) plugin that adds the following commands:
 - **Cut lines:** Cuts the lines under the selection or cursor.
 - **Paste before line:** Pastes the clipboard text in the line above the cursor.
 - **Paste after line:** Pastes the clipboard text in the line below the cursor.
+- **Insert line above:** Inserts a new, empty line above the cursor line, continuing any list or checkbox marker.
+- **Insert line below:** Inserts a new, empty line below the cursor line, continuing any list or checkbox marker.
 - **Duplicate lines:** Copies the lines under the selection and pastes them in the line below the cursor.
 
 <img width="565" alt="Icons for each of the commands listed above" src="https://raw.githubusercontent.com/charliecm/obsidian-line-commands/main/commands.png">

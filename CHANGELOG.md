@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0 (2026-08-07)
+
+- Added "Insert line above" and "Insert line below" commands, continuing list/task/indent markers
+- Fixed "Paste before line" and "Paste after line" not reliably placing the cursor at the end of the pasted text
+
 ## 1.2.0 (2026-08-06)
 
 - Extended "Select lines" command to select downward in subsequent runs (thanks @nheath)
