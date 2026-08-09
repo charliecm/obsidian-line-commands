@@ -11,7 +11,7 @@ An [Obsidian](https://obsidian.md) plugin that adds the following commands:
 - **Insert line below:** Inserts a new, empty line below the cursor line, continuing any list or checkbox marker.
 - **Duplicate lines:** Copies the lines under the selection and pastes them in the line below the cursor.
 
-<img width="565" alt="Icons for each of the commands listed above" src="https://raw.githubusercontent.com/charliecm/obsidian-line-commands/main/commands.png">
+<img width="512" alt="Icons for each of the commands listed above" src="https://raw.githubusercontent.com/charliecm/obsidian-line-commands/main/commands.png">
 
 ![Demo video](https://raw.githubusercontent.com/charliecm/obsidian-line-commands/main/demo.gif)
 
