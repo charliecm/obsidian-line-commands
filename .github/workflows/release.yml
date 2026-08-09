@@ -46,7 +46,21 @@ jobs:
                     assets="$assets styles.css"
                   fi
 
-                  gh release create "$tag" \
+                  notes="$(awk -v version="$tag" '
+                    index($0, "## " version " (") == 1 { found=1; next }
+                    found && /^## / { exit }
+                    found { print }
+                    END { if (!found) exit 1 }
+                  ' CHANGELOG.md)"
+
+                  release_url="$(gh release create "$tag" \
                     --title="$tag" \
                     --draft \
-                    $assets
+                    --notes="$notes" \
+                    $assets)"
+
+                  {
+                    echo "## Draft release ready"
+                    echo
+                    echo "Publish [$tag]($release_url)."
+                  } >> "$GITHUB_STEP_SUMMARY"
