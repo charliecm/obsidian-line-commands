@@ -78,6 +78,10 @@ class TestEditor {
 		this.selection = { from, to };
 	}
 
+	somethingSelected() {
+		return this.from.line !== this.to.line || this.from.ch !== this.to.ch;
+	}
+
 	getSelection() {
 		return this.selection;
 	}
@@ -112,11 +116,13 @@ describe('ObsidianLineCommands', () => {
 		await plugin.onload();
 	});
 
-	it('registers the eight documented editor commands', () => {
+	it('registers the ten documented editor commands', () => {
 		expect(commands.map(({ id, name, icon }) => ({ id, name, icon }))).toEqual([
 			{ id: 'select-lines', name: 'Select lines', icon: 'text-cursor-input' },
 			{ id: 'copy-lines', name: 'Copy lines', icon: 'copy-minus' },
 			{ id: 'cut-lines', name: 'Cut lines', icon: 'scissors-line-dashed' },
+			{ id: 'copy-selection-or-line', name: 'Copy selection or line', icon: 'copy' },
+			{ id: 'cut-selection-or-line', name: 'Cut selection or line', icon: 'scissors' },
 			{ id: 'paste-before-line', name: 'Paste before line', icon: 'clipboard-copy' },
 			{ id: 'paste-after-line', name: 'Paste after line', icon: 'clipboard-paste' },
 			{ id: 'insert-line-above', name: 'Insert line above', icon: 'between-horizontal-end' },
@@ -223,6 +229,66 @@ describe('ObsidianLineCommands', () => {
 
 		expect(writeText).toHaveBeenCalledWith('second');
 		expect(editor.text).toBe('first');
+	});
+
+	it('copies only the selected text across lines without changing the editor', async () => {
+		const { writeText } = setClipboard(undefined, vi.fn().mockResolvedValue(undefined));
+		const editor = new TestEditor('first\nsecond\nthird', { line: 0, ch: 2 }, { line: 1, ch: 3 });
+
+		await getCommand('copy-selection-or-line').editorCallback(editor);
+
+		expect(writeText).toHaveBeenCalledWith('rst\nsec');
+		expect(editor.text).toBe('first\nsecond\nthird');
+	});
+
+	it('copies the cursor line when nothing is selected', async () => {
+		const { writeText } = setClipboard(undefined, vi.fn().mockResolvedValue(undefined));
+		const editor = new TestEditor('first\nsecond\nthird', { line: 1, ch: 2 });
+
+		await getCommand('copy-selection-or-line').editorCallback(editor);
+
+		expect(writeText).toHaveBeenCalledWith('second');
+		expect(editor.text).toBe('first\nsecond\nthird');
+	});
+
+	it('cuts only the selected text across lines and joins the remaining text', async () => {
+		const { writeText } = setClipboard(undefined, vi.fn().mockResolvedValue(undefined));
+		const editor = new TestEditor('first\nsecond\nthird', { line: 0, ch: 2 }, { line: 1, ch: 3 });
+
+		await getCommand('cut-selection-or-line').editorCallback(editor);
+
+		expect(writeText).toHaveBeenCalledWith('rst\nsec');
+		expect(editor.text).toBe('fiond\nthird');
+	});
+
+	it('cuts the whole cursor line when nothing is selected', async () => {
+		const { writeText } = setClipboard(undefined, vi.fn().mockResolvedValue(undefined));
+		const editor = new TestEditor('first\nsecond\nthird', { line: 1, ch: 2 });
+
+		await getCommand('cut-selection-or-line').editorCallback(editor);
+
+		expect(writeText).toHaveBeenCalledWith('second');
+		expect(editor.text).toBe('first\nthird');
+	});
+
+	it('cuts the final cursor line without leaving a trailing newline when nothing is selected', async () => {
+		const { writeText } = setClipboard(undefined, vi.fn().mockResolvedValue(undefined));
+		const editor = new TestEditor('first\nsecond', { line: 1, ch: 0 });
+
+		await getCommand('cut-selection-or-line').editorCallback(editor);
+
+		expect(writeText).toHaveBeenCalledWith('second');
+		expect(editor.text).toBe('first');
+	});
+
+	it('cuts an empty cursor line when nothing is selected', async () => {
+		const { writeText } = setClipboard(undefined, vi.fn().mockResolvedValue(undefined));
+		const editor = new TestEditor('first\n\nthird', { line: 1, ch: 0 });
+
+		await getCommand('cut-selection-or-line').editorCallback(editor);
+
+		expect(writeText).toHaveBeenCalledWith('');
+		expect(editor.text).toBe('first\nthird');
 	});
 
 	it('pastes multi-line clipboard text before the cursor line', async () => {
