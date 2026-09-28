@@ -49,6 +49,13 @@ For manual installation, download this repo and copy over `main.js` and `manifes
 5. Go to “Releases” in GitHub and edit the latest release (created by GitHub Actions). Insert the changelog texts in the description and ensure `main.js` and `manifest.json` are attached.
 6. Click “Publish release”.
 
+### Beta release
+
+1. Add changes under `## Unreleased` in `CHANGELOG.md`.
+2. On a throwaway branch from the feature branch, run `npm version 1.4.0-beta.1` and push only the tag: `git push origin 1.4.0-beta.1`.
+3. Publish the draft pre-release created by GitHub Actions. Don't merge the version bump into `main`.
+4. Testers run **BRAT: Add a beta plugin for testing** in Obsidian and enter `charliecm/obsidian-line-commands`.
+
 ## Support
 
 If you really like this plugin and want to support its development, please consider [buying me a coffee](https://www.buymeacoffee.com/charliecm) 🙂 Thanks!

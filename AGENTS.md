@@ -91,6 +91,20 @@ Symlinks (or with no `-d`, copies) `main.js` and `manifest.json` into `<Vault>/.
 - Create a GitHub release whose tag exactly matches `manifest.json`'s `version` (no leading `v`). Pushing the tag triggers `release.yml`, which builds, attests provenance, and creates a draft release.
 - Attach/verify `manifest.json`, `main.js`, and `styles.css` (if present) on the release, then edit in the changelog text and publish.
 
+### Beta releases (BRAT)
+
+- Testers install betas with [BRAT](https://tfthacker.com/brat-developers), which reads `manifest.json` from the release assets and picks the highest release or pre-release by SemVer.
+- Never put a beta version in `manifest.json`, `versions.json`, or `package.json` on `main` — Obsidian reads the root `manifest.json` on the default branch, so regular users would be offered the beta.
+- Cut a beta from a throwaway branch so the version bump never lands in the feature branch:
+    ```bash
+    git switch -c beta/1.4.0-beta.1 feature/my-feature
+    npm version 1.4.0-beta.1   # commits and tags 1.4.0-beta.1 (no `v` prefix, see .npmrc)
+    git push origin 1.4.0-beta.1
+    git switch - && git branch -D beta/1.4.0-beta.1
+    ```
+- A tag with a `-` suffix makes `release.yml` create a draft **pre-release** with the `## Unreleased` changelog section as notes, so keep that section in `CHANGELOG.md` for betas. Publish the draft to make it visible to BRAT.
+- Increment the suffix for each new beta (`-beta.2`, …). After the stable release, tell testers to remove the plugin from BRAT and reinstall from Community plugins, since Obsidian may not upgrade from a pre-release automatically.
+
 ## Security, privacy, and compliance
 
 Follow Obsidian's **Developer Policies** and **Plugin Guidelines**. In particular:
