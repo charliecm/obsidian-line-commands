@@ -46,8 +46,19 @@ jobs:
                     assets="$assets styles.css"
                   fi
 
-                  notes="$(awk -v version="$tag" '
-                    index($0, "## " version " (") == 1 { found=1; next }
+                  # A tag with a SemVer pre-release suffix (e.g. 1.4.0-beta.1) is a
+                  # beta for BRAT testers: mark it as a pre-release and use the
+                  # "Unreleased" changelog section, since betas have no heading.
+                  if [[ "$tag" == *-* ]]; then
+                    heading="## Unreleased"
+                    prerelease="--prerelease"
+                  else
+                    heading="## $tag ("
+                    prerelease=""
+                  fi
+
+                  notes="$(awk -v heading="$heading" '
+                    index($0, heading) == 1 { found=1; next }
                     found && /^## / { exit }
                     found { print }
                     END { if (!found) exit 1 }
@@ -56,6 +67,7 @@ jobs:
                   release_url="$(gh release create "$tag" \
                     --title="$tag" \
                     --draft \
+                    $prerelease \
                     --notes="$notes" \
                     $assets)"
 
