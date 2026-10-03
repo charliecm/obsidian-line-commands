@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.4.0 (2026-10-02)
+
 - Added "Copy selection or line" and "Cut selection or line" commands, which act on the selected text or on the cursor line when nothing is selected
 
 ## 1.3.0 (2026-08-07)
