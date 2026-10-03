@@ -13,10 +13,7 @@ function getLineRange(editor: Editor) {
 
 function getLineRemovalRange(
 	editor: Editor,
-	startLine: number,
-	endLine: number,
-	rangeStart: EditorPosition,
-	rangeEnd: EditorPosition,
+	{ startLine, endLine, rangeStart, rangeEnd }: ReturnType<typeof getLineRange>,
 ) {
 	if (endLine < editor.lastLine()) {
 		return { removalStart: rangeStart, removalEnd: { line: endLine + 1, ch: 0 } };
@@ -26,6 +23,22 @@ function getLineRemovalRange(
 	}
 	const previousLineEnd = { line: startLine - 1, ch: editor.getLine(startLine - 1).length };
 	return { removalStart: previousLineEnd, removalEnd: rangeEnd };
+}
+
+// The text to copy or cut, plus the range to delete when cutting (which
+// includes the line break for full lines).
+type TextRange = { from: EditorPosition; to: EditorPosition; removalStart: EditorPosition; removalEnd: EditorPosition };
+
+function getLinesTextRange(editor: Editor): TextRange {
+	const lineRange = getLineRange(editor);
+	return { from: lineRange.rangeStart, to: lineRange.rangeEnd, ...getLineRemovalRange(editor, lineRange) };
+}
+
+function getSelectionOrLineTextRange(editor: Editor): TextRange {
+	if (!editor.somethingSelected()) return getLinesTextRange(editor);
+	const from = editor.getCursor('from');
+	const to = editor.getCursor('to');
+	return { from, to, removalStart: from, removalEnd: to };
 }
 
 function getPasteEndCursor(baseLine: number, clipboardLines: string[]): EditorPosition {
@@ -80,8 +93,7 @@ export default class ObsidianLineCommands extends Plugin {
 				// selection to include the next line down on each invocation.
 				// A collapsed cursor on an empty line trivially matches the
 				// full-line bounds, so require an actual selection as well.
-				const hasSelection = from.line !== to.line || from.ch !== to.ch;
-				const fullySelected = hasSelection && from.ch === 0 && to.ch === rangeEnd.ch;
+				const fullySelected = editor.somethingSelected() && from.ch === 0 && to.ch === rangeEnd.ch;
 				const finalRangeEnd =
 					fullySelected && endLine < lastLine
 						? { line: endLine + 1, ch: editor.getLine(endLine + 1).length }
@@ -94,24 +106,28 @@ export default class ObsidianLineCommands extends Plugin {
 			id: 'copy-lines',
 			name: 'Copy lines',
 			icon: 'copy-minus',
-			editorCallback: async (editor: Editor) => {
-				const { rangeStart, rangeEnd } = getLineRange(editor);
-				const text = editor.getRange(rangeStart, rangeEnd);
-				await this.copyToClipboard(text);
-			},
+			editorCallback: async (editor: Editor) => this.copyRange(editor, getLinesTextRange(editor)),
 		});
 
 		this.addCommand({
 			id: 'cut-lines',
 			name: 'Cut lines',
 			icon: 'scissors-line-dashed',
-			editorCallback: async (editor: Editor) => {
-				const { startLine, endLine, rangeStart, rangeEnd } = getLineRange(editor);
-				const text = editor.getRange(rangeStart, rangeEnd);
-				const { removalStart, removalEnd } = getLineRemovalRange(editor, startLine, endLine, rangeStart, rangeEnd);
-				editor.replaceRange('', removalStart, removalEnd);
-				await this.copyToClipboard(text);
-			},
+			editorCallback: async (editor: Editor) => this.cutRange(editor, getLinesTextRange(editor)),
+		});
+
+		this.addCommand({
+			id: 'copy-selection-or-line',
+			name: 'Copy selection or line',
+			icon: 'copy',
+			editorCallback: async (editor: Editor) => this.copyRange(editor, getSelectionOrLineTextRange(editor)),
+		});
+
+		this.addCommand({
+			id: 'cut-selection-or-line',
+			name: 'Cut selection or line',
+			icon: 'scissors',
+			editorCallback: async (editor: Editor) => this.cutRange(editor, getSelectionOrLineTextRange(editor)),
 		});
 
 		this.addCommand({
@@ -184,6 +200,16 @@ export default class ObsidianLineCommands extends Plugin {
 				editor.setSelection(selectionStart, selectionEnd);
 			},
 		});
+	}
+
+	async copyRange(editor: Editor, { from, to }: TextRange) {
+		await this.copyToClipboard(editor.getRange(from, to));
+	}
+
+	async cutRange(editor: Editor, { from, to, removalStart, removalEnd }: TextRange) {
+		const text = editor.getRange(from, to);
+		editor.replaceRange('', removalStart, removalEnd);
+		await this.copyToClipboard(text);
 	}
 
 	async copyToClipboard(text: string) {
